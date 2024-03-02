@@ -16,7 +16,7 @@ app.listen(port, () => {
 // Ajout de la configuration de la base de données MongoDB
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost:27017/audioDB', {
+mongoose.connect('mongodb://127.0.0.1:27017/audioDB', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
