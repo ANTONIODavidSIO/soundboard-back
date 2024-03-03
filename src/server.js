@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = 5000;
 
 const router = require('./routes');
 
@@ -13,7 +13,6 @@ app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
 
-// Ajout de la configuration de la base de données MongoDB
 const mongoose = require('mongoose');
 
 mongoose.connect('mongodb://127.0.0.1:27017/audioDB', {
