@@ -12,11 +12,18 @@ router.get('/soundboards', async (req, res) => {
 
 // Ajouter une soundboard
 router.post('/soundboards', async (req, res) => {
-  const { name, file } = req.body;
+  if (!req.files || !req.files.file) {
+    return res.status(400).send("Fichier manquant");
+  }
+
+  const { file } = req.files;
+  const name = file.name; 
   const newSoundboard = new Soundboard({ name, file });
   await newSoundboard.save();
   res.json(newSoundboard);
 });
+
+
 
 // Supprimer une soundboard
 router.delete('/soundboards/:id', async (req, res) => {
