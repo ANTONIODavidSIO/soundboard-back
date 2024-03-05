@@ -1,82 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+const router = require('express').Router();
+const multer = require('multer');
+const Soundboard = require('../models/Soundboard');
+const path = require('path');
+const fs = require('fs-extra');
 
-const Soundboard = ({ soundboard, onDelete, onKeyBind }) => {
-  const [volume, setVolume] = useState(100);
-  const [shortcutKey, setShortcutKey] = useState(null);
 
-  const handlePlay = async () => {
-    try {
-      // Récupérer l'URL du son depuis la soundboard
-      const response = await axios.get(`http://localhost:5000/api/soundboards/${soundboard._id}`);
-      const audioUrl = response.data.file;
-      
-      // Créer un nouvel élément audio
-      const audio = new Audio(audioUrl);
-      
-      // Mettre à jour le volume
-      audio.volume = volume / 100;
-      
-      // Jouer le son
-      audio.play();
-    } catch (error) {
-      console.error('Erreur lors de la lecture du son:', error);
-    }
-  };
 
-  const handleVolumeChange = event => {
-    setVolume(event.target.value);
-  };
+const upload = multer({dest: 'uploads/'});
 
-  const handleAddShortcut = () => {
-    const key = window.prompt('Veuillez entrer une touche pour le raccourci clavier (A-Z)', '');
+// Charger les soundboards
+router.get('/soundboards', async (req, res) => {
+  res.setHeader('Access-Contronl-Allow-Origin', 'http://localhost:3000'),
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE'),
+  res.setHeader('Access-Control-Allow-Headers', 'Content-type, Authorization')
+  const soundboards = await Soundboard.find();
+  res.json(soundboards);
+});
 
-    if (key && key.match(/^[a-zA-Z]$/) !== null) {
-      setShortcutKey(key.toUpperCase());
-      onKeyBind(soundboard._id, key.toUpperCase());
-    } else {
-      alert("Veuillez entrer une lettre de A à Z comme raccourci.");
-    }
-  };
+// Ajouter une soundboard
+router.post('/soundboards', upload.any(), async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).send("Fichier manquant");
+  }
 
-  useEffect(() => {
-    const handleKeyDown = event => {
-      if (event.key.toUpperCase() === shortcutKey) {
-        handlePlay();
-      }
-    };
+  const file = req.files[0];
+  const name = req.body.name; // Utilisez le nom du fichier envoyé dans le formulaire
 
-    document.addEventListener('keydown', handleKeyDown);
+  // Construisez le chemin du fichier
+  const filePath = path.join('uploads', file.filename);
 
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [shortcutKey]);
+  try {
+   
 
-  return (
-    <div>
-      <h2>{soundboard.name}</h2>
-      <button className="btn-big" onClick={handlePlay}><i className="fas fa-play"></i>Play</button>
-      <button className="btn-big" onClick={onDelete}><i className="fas fa-trash"></i>Delete</button>
-      <div>
-        <label htmlFor="volume">Volume:</label>
-        <input
-          id="volume"
-          type="range"
-          min="0"
-          max="100"
-          value={volume}
-          onChange={handleVolumeChange}
-        />
-      </div>
-      <button onClick={handleAddShortcut}>Ajouter Raccourci</button>
-      {shortcutKey && (
-        <div>
-          <p>Raccourci clavier enregistré: {shortcutKey}</p>
-        </div>
-      )}
-    </div>
-  );
-};
+    // Créez une nouvelle instance de Soundboard en utilisant le chemin du fichier
+    const newSoundboard = new Soundboard({ name, file: filePath });
 
-export default Soundboard;
+    // Enregistrez la soundboard dans la base de données
+    await newSoundboard.save();
+
+    // Réponse avec la nouvelle soundboard
+    res.json(newSoundboard);
+  } catch (error) {
+    console.error("Erreur lors du déplacement du fichier :", error);
+    return res.status(500).send("Erreur lors du déplacement du fichier");
+  }
+});
+
+
+
+// Supprimer une soundboard
+router.delete('/soundboards/:id', async (req, res) => {
+  const soundboardId = req.params.id;
+  await Soundboard.findByIdAndDelete(soundboardId);
+  res.json({ message: 'Soundboard supprimée' });
+});
+
+module.exports = router;
