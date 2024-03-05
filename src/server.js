@@ -2,10 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = 5000;
+const multer = require('multer');
 
 const router = require('./routes');
 
-
+app.use(express.json());
+//app.use(multer().fields([{ name: 'file', maxCount: 1 }, { name: 'name' }]));
 app.use(cors({
   exposedHeader:['Authorization'],
 }));
