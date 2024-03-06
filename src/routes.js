@@ -27,13 +27,13 @@ router.post('/soundboards', upload.any(), async (req, res) => {
   const name = req.body.name; // Utilisez le nom du fichier envoyé dans le formulaire
 
   // Construisez le chemin du fichier
-  const filePath = path.join('uploads', file.filename);
+  const filePath = path.join('uploads',`${file.filename}.mp3`);
 
   try {
    
 
     // Créez une nouvelle instance de Soundboard en utilisant le chemin du fichier
-    const newSoundboard = new Soundboard({ name, file: filePath });
+    const newSoundboard = new Soundboard({ name, file: filePath});
 
     // Enregistrez la soundboard dans la base de données
     await newSoundboard.save();

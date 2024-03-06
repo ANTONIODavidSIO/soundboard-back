@@ -3,8 +3,12 @@ const cors = require('cors');
 const app = express();
 const port = 5000;
 const multer = require('multer');
+const path = require('path')
 
 const router = require('./routes');
+
+// app.use('/uploads', express.static('uploads'))
+app.use('/static', express.static(path.join(__dirname, 'uploads')))
 
 app.use(express.json());
 //app.use(multer().fields([{ name: 'file', maxCount: 1 }, { name: 'name' }]));
